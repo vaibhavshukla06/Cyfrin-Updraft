@@ -1,1 +1,56 @@
+// EVM, Ethereym Virtual Machine
+// Ethereum, Polygon, Arbitrum, Optimism, Zksync
 
+// SPDX-License-Identifier: MIT
+pragma solidity 0.8.24; // Solidity version and this "^" states anything higher than this version 
+
+contract SimpleStorage {
+    // favoriteNumber gets initialized to 0 if no value is given
+
+    uint256 myfavoriteNumber; // 0 "
+
+    // uint256[] listoffavoriteNumber:
+    struct Person {
+        uint256 favoriteNumber;
+        string name;
+    }
+    
+    // Person public pat = Person({favoriteNumber:9, name:"Pat"});
+    // Person public pat = Person(9, "Pat");
+    
+    // Static array 
+    // Person[5] public listofPeople;
+    
+    // Dynamic array.
+    Person[] public listofPeople; 
+
+    // Mapping : You can think of a mapping as a dictionary. It's a set of keys with each key returning a special set of information about the key. for example : if you look up the work "the," the work "the" will have a whole buch of tags associated only with the word "the."
+    mapping(string => uint256) public nameToFavoriteNumber;
+
+    function store(uint256 _favoriteNumber) public {
+        myfavoriteNumber = _favoriteNumber; 
+    }
+    
+    function retrieve() public view returns (uint256) {
+        return myfavoriteNumber;
+    }
+    
+    // calldata, memory, storage
+    // calldata - is temperory variables that cannot be modifed
+    // memory - is temperory variables which is not written to storage, but can be read from storage or modified by a smart contract. This may result in unexpected behavior in certain cases (for example, when using array types).
+    // storage - is permanent variables that can be modified. If you create a variable that's outside of any function inside of a contract.
+    function addPerson(string memory _name, uint256 _favoriteNumber) public {
+        listofPeople.push( Person(_favoriteNumber, _name) );
+        nameToFavoriteNumber[_name] = _favoriteNumber;
+    }
+    
+    // view, pure
+    // function retrive() public view returns (uint256) { // This function reads data from the blockchain (specifically, the state variable favoriteNumber).
+    //     return favoriteNumber;
+    // }
+    // function retrive() public pure returns (uint256) { // This function does not read or modify any state variable. It simply returns a constant number 7.
+    //     return 7;
+    // }
+    // view, pure 
+    // function retrive() public view returns 
+}
