@@ -1,0 +1,84 @@
+# virtual keyword is used in a parent contract to allow a function to be overridden, while override keyword is used in a child contract to provide a new implementation for that function.
+
+# AddFiveStorage.sol : Child Contract
+
+//  SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.18;
+
+// named import
+import {SimpleStorage} from "./SimpleStorage.sol";
+
+contract AddFiveStorage is SimpleStorage {
+    // + 5
+    // overrides
+    // virtual override
+    // inheritance
+    function store(uint256 value) public virtual override{
+        super.store(value + 5);
+    }
+
+    // direct calculation
+    // function store(uint256 value) public virtual override{
+    //     myFavoriteNumber = _newNumber + 5;
+    // }
+
+    // Yes — technically, Version 2 ^ is still using inheritance because:
+    // • It is overriding a function from the parent contract.
+    // • The function signature uses override, meaning it comes from an inherited function.
+    // • The child contract is inheriting the parent, even though it's not calling super.
+
+    // 🧠 But Conceptually?
+    // While it's inheriting the parent, it is not using the parent's implementation. Instead, it is:
+    //  " Overriding the inherited function and replacing the logic completely. "
+
+    // Imagine you're inheriting a recipe from your grandmother:
+    //  • super.store(...) is like using her original recipe but adding a little spice.
+    //  • Direct assignment/calculation (myFavoriteNumber = ...) is like throwing out the old recipe and writing your own from scratch — you're still her grandchild (inheriting), but you're doing your own thing.
+}
+
+# SimpleStorage.sol : Parent Contract
+
+// I'm a comment!
+// SPDX-License-Identifier: MIT
+
+pragma solidity ^0.8.18;
+
+// pragma solidity ^0.8.0;
+// pragma solidity >=0.8.0 <0.9.0; 
+
+contract SimpleStorage {
+    // favoriteNumber gets initialized to 0 if no value 1.
+    uint256 myFavoriteNumber;
+
+    struct Person {
+        uint256 favoriteNumber;
+        string name;
+    }
+
+    // uint256[] public anArray;
+    Person[] public listOfPeople;
+
+    // chelsea -> 232
+    mapping(string => uint256) public nameToFavoriteNumber;
+
+    function store(uint256 _favoriteNumber) public virtual {
+        myFavoriteNumber = _favoriteNumber;
+    }
+
+    function retrieve() public view returns (uint256) {
+        return myFavoriteNumber;
+    }
+
+    function addPerson(string memory _name, uint256 _favoriteNumber) public {
+        listOfPeople.push(Person(_favoriteNumber, _name));
+        nameToFavoriteNumber[_name] = _favoriteNumber;
+    }
+}
+
+contract SimpleStorage2 {}
+
+contract SimpleStorage3 {}
+
+contract SimpleStorage4 {}
+ 
