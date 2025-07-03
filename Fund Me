@@ -1,0 +1,49 @@
+// Get funds from users
+// Withdraw funds
+// Set a minimum funding value in USD
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+
+contract FundMe{
+    uint256 public minimumUsd = 5e18; // 5eth or 5 * 1e18 
+
+    address[] public founders;
+    mapping(address foudner => uint256 amountFunded) public addressToAmountFunded;
+
+    function fund() public payable { // The payable keyword is used to mark a function or address that can receive Ether (ETH).
+        // Allow users to send $
+        // Have a minimum $ sent
+        // 1. How do we send ETH to our contract
+        require(getConversionRate(msg.value) >= minimumUsd, "Didn't get the minimum ETH amount"); //  1e18 = 1 ETH = 1000000000000000000 = 1 * 10 ** 18
+        founders.push(msg.sender);
+        addressToAmountFunded[msg.sender] += msg.value; // addressToAmountFunded[msg.sender] = addressToAmountFunded[msg.sender] + msg.value
+
+        // What is a revert?
+        // Undo any actions that have been done, and send the remaining gas back
+    }
+
+    function getPrice() public view returns(uint256){
+        // Address : 0x694AA1769357215DE4FAC081bf1f309aDC325306
+        // ABI
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
+        // Get latest price feed from our ETH/USD price feed address. 
+        (, int256 price, , ,) = priceFeed.latestRoundData();
+        // price of ETH in terms of USD
+        // 200000000000
+        return uint256(price * 1e10); // We multiply price * 1e10 to scale the Chainlink ETH price (8 decimals) into the standard 18 decimal format (wei) used in Ethereum/Solidity calculations — so all values are consistent and we don’t lose precision.
+    }
+
+    function getConversionRate(uint256 ethAmount) public view returns(uint256) {
+        uint256 ethPrice = getPrice();
+        // 1000000000000000000 * 10000000000000000000 = 1000000000000000000000000000000000 / 1e18
+        uint256 ethAmountIdUsd = (ethPrice * ethAmount) / 1e10; // !Important rule of math in Solidity is " You should always multiply before you divide. " the reason 
+        return ethAmountIdUsd; 
+    }
+
+    function getVersion()public view returns (uint256) {
+        return AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306).version();
+    }
+}
