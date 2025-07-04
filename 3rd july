@@ -1,0 +1,130 @@
+#Fundme.sol
+
+// Get funds from users
+// Withdraw funds
+// Set a minimum funding value in USD
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import {PriceConverter} from "./PriceConverter.sol";
+
+// Constant, immutable
+// 842080 gas - constant
+// 821731 gas - non-constant
+// 821731 * 716000000gwei = 58,83,59,39,60,00,000wei = 0.000588359396eth = $ 1.49
+
+error NotOwner();
+
+contract FundMe{
+    using PriceConverter for uint256;
+
+    uint256 public constant MINIMUM_USD = 50 * 1e18; // 5eth or 5 * 1e18 
+    // 347 gas - constant
+    // 2446 gas - non-constant
+
+    address[] public funders;
+    mapping(address funder => uint256 amountFunded) public addressToAmountFunded;
+
+    address public immutable i_owner;
+    // 439 gas - immutable
+    // 2574 gas - non-immutable
+
+    constructor() {
+        i_owner = msg.sender;
+    }
+
+    function fund() public payable { // The payable keyword is used to mark a function or address that can receive Ether (ETH).
+        // msg.value.getConversionRate();
+        // require(getConversionRate(msg.value) >= minimumUsd, "Didn't get the minimum ETH amount"); //  1e18 = 1 ETH = 1000000000000000000 = 1 * 10 ** 18
+        require(msg.value.getConversionRate() >= MINIMUM_USD, "Didn't get the minimum ETH amount"); //  1e18 = 1 ETH = 1000000000000000000 = 1 * 10 ** 18
+        funders.push(msg.sender);
+        addressToAmountFunded[msg.sender] += msg.value; // addressToAmountFunded[msg.sender] = addressToAmountFunded[msg.sender] + msg.value
+
+        // What is a revert?
+        // Undo any actions that have been done, and send the remaining gas back
+    }
+
+    modifier onlyOwner() {
+        // require(msg.sender == i_owner, "Sender is not owner!"); // Checks if the condtion is matched 
+        if(msg.sender != i_owner) {revert NotOwner();} // Checks and reverts if not matched. Custom errors!
+        _; // if yes, continue to the actual task (withdrawl) but if no, then no withdrawl
+    }
+    
+    function withdraw() public onlyOwner{
+        // for loop = [1, 2, 3, 4] elements
+        //   Indexes   0, 1, 2, 3 
+        // for (/* starting index, ending index, step ammount or incremental amount*/) {}
+        //  •      0 , 10 , 1  =>. 0, 1, 2, 3, 4 
+        //  •      3 , 12 , 2  =>. 3, 5, 7, 9, 11    
+        for(uint256 funderIndex = 0; funderIndex < funders.length; funderIndex++) {
+            address funder = funders[funderIndex];
+            addressToAmountFunded[funder] = 0;
+        }
+        // reset the array
+        // • The resetting of the list in a smart contract is like the shopkeeper forgetting about the
+        //   apples you've already eaten or returned after the transaction is done. They still know you 
+        //   bought apples, but they no longer need to track that specific transaction after you've returned or completed the action.
+        // • In a smart contract, the funders array is cleared to optimize storage and ensure that only relevant data is tracked moving forward.
+        funders = new address[](0); 
+
+        // msg.sender = addresst
+        // payable(msg.sender) = payable address. A payable address is a special type of address in Solidity. It is an address that can receive Ether. When you want to send Ether to an address, you need to make sure that the address is payable.
+        // transfer
+        payable(msg.sender).transfer(address(this).balance); // if we want to transfer the funds to whoever is calling the withdrawl of the fund 
+        
+        // send
+        bool sendSuccess = payable(msg.sender).send(address(this).balance);
+        require(sendSuccess, "Send failed");
+
+        // call
+        // yeah we know that this funcion returns two variable but we only want 1 so ignore cotted part
+        (bool callSuccess,) = payable(msg.sender).call{value: address(this).balance}("");
+        require(callSuccess, "Call failed");
+    }
+    
+
+    // What happens if someone sends this contract ETH without calling the fund function
+    receive() external payable {
+        fund();
+    }
+    fallback() external payable {
+        fund();
+    }
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+#PriceConverter.sol
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
+
+library PriceConverter {
+    function getPrice() internal view returns(uint256){
+        // Address : 0x694AA1769357215DE4FAC081bf1f309aDC325306
+        // ABI
+        AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
+        // Get latest price feed from our ETH/USD price feed address. 
+        (, int256 price, , ,) = priceFeed.latestRoundData();
+        // price of ETH in terms of USD
+        // 200000000000
+        return uint256(price * 1e10); // We multiply price * 1e10 to scale the Chainlink ETH price (8 decimals) into the standard 18 decimal format (wei) used in Ethereum/Solidity calculations — so all values are consistent and we don’t lose precision.
+    }
+
+    function getConversionRate(uint256 ethAmount) internal view returns(uint256) {
+        uint256 ethPrice = getPrice();
+        // 1000000000000000000 * 10000000000000000000 = 1000000000000000000000000000000000 / 1e18
+        uint256 ethAmountIdUsd = (ethPrice * ethAmount) / 1e10; // !Important rule of math in Solidity is " You should always multiply before you divide. " the reason 
+        return ethAmountIdUsd; 
+    }
+
+    function getVersion()internal view returns (uint256) {
+        return AggregatorV3Interface(0xfEefF7c3fB57d18C5C6Cdd71e45D2D0b4F9377bF).version();
+    }
+}
+
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
