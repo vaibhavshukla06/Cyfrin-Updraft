@@ -34,16 +34,56 @@ contract SimpleStorage {
     function retrieve() public view returns (uint256) {
         return myfavoriteNumber;
     }
-    
+
     // calldata, memory, storage
     // calldata - is temperory variables that cannot be modifed
     // memory - is temperory variables which is not written to storage, but can be read from storage or modified by a smart contract. This may result in unexpected behavior in certain cases (for example, when using array types).
     // storage - is permanent variables that can be modified. If you create a variable that's outside of any function inside of a contract.
+    // ----------------------------------------------------------------------------------------
+    // 🍽️ 1. calldata — The Order Slip From the Customer
+    //    A customer gives the waiter an order slip:
+    //    "1 Banana Shake, no sugar"
+    //    The waiter reads it and passes it to the kitchen.
+    //    ✅ This is like calldata:
+    //    Comes from outside (the customer)
+    //    Is read-only — the chef cannot write on it or change it.
+    //    Exists only during that order.
+    //    Once read and used, it’s thrown away.
+    //    👉 You can read it and copy it to storage (like cooking the order), but you can’t change the slip itself.
+        
+    // 🍳 2. memory — Whiteboard in the Kitchen
+    //    The chef needs to temporarily do calculations:
+    //    “Add 2 eggs”
+    //    “Now mix it”
+    //    He writes notes on the whiteboard in the kitchen.
+    //    Once the dish is done, he wipes it clean.
+    //    ✅ This is like memory:
+    //    Temporary.
+    //    Used during the function.
+    //    Can be read and written.
+    //    Disappears after the function ends.
+    //    👉 Think of it as working space.
+        
+    // 📦 3. storage — The Freezer in the Kitchen
+    //    After the dish is made, it is stored in the freezer.
+    //    It stays there until someone takes it out or deletes it.
+    //    It is persistent — doesn’t go away after the day ends.
+    //    ✅ This is like storage:
+    //    Permanent state of the smart contract.
+    //    Costs the most gas.
+    //    Keeps data forever on the blockchain, unless explicitly deleted.
+    //    👉 Think of it as the long-term memory of your contract.
+
+    // When a user gives data to your function (like product name, price, etc.), it's calldata.
+    // If you want to keep it permanently, store it in storage.
+    // If you just need to do temporary logic, use memory.
+
+    // ---------------------------------------------------------------------------------------
     function addPerson(string memory _name, uint256 _favoriteNumber) public {
         listofPeople.push( Person(_favoriteNumber, _name) );
         nameToFavoriteNumber[_name] = _favoriteNumber;
     }
-    
+
     // view, pure
     // function retrive() public view returns (uint256) { // This function reads data from the blockchain (specifically, the state variable favoriteNumber).
     //     return favoriteNumber;
