@@ -1,0 +1,32 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+
+contract MyToken {
+    // uint256 mytotalSupply;
+
+    struct items {
+        string product;
+        uint256 price;
+        // uint256 stock;
+    }
+
+    items[] public listofproducts;
+    
+    // This is useful for quickly retrieving the price of a product by its name, without searching through the array one-by-one.
+    mapping(string => uint256) public priceoftheproduct; // This creates a public key-value store (dictionary) called priceoftheproduct.
+
+    // function stock(uint256 _totalSupply) public {
+    //     mytotalSupply = _totalSupply;
+    // }
+
+    // function retrieve() public view returns (uint256) {
+    //     return mytotalSupply;
+    // } 
+
+    function product(string calldata _name, uint256 _price) public {
+        listofproducts.push( items(_name, _price));
+        // listofproducts.push( items(_name, _price, _stock));
+        // This adds an entry to the priceoftheproduct mapping.
+        priceoftheproduct[_name] = _price; // Store the price in a mapping for quick retrieval
+    }
+}
