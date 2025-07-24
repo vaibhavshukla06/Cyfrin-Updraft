@@ -1,0 +1,51 @@
+// In this project i learned how to deploy a contract form another contract and also how to use inheritance in solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.14;
+
+import "./SimpleStorage.sol";
+// import {MyToken} from "./SimpleStorage.sol"; // If we want to import a specific function
+
+contract StorageFactory {
+    SimpleStorage[] public listofsimpleStorageContracts;
+    // address[] public listofsimpleStorageAddresses;
+
+    function createSimpleStorageContract() public{
+        SimpleStorage newsimpleStorageContract = new SimpleStorage();
+        listofsimpleStorageContracts.push(newsimpleStorageContract);
+    }
+
+    function sfStoke(uint256 _simpleStorageIndex, uint256 _newSimpleStorageNumber) public{
+        // SimpleStorage mySimpleStorage = SimpleStorage(listofsimpleStorageAddresses[_simpleStorageIndex]);
+        SimpleStorage mySimpleStorage = listofsimpleStorageContracts[_simpleStorageIndex];
+        mySimpleStorage.stock(_newSimpleStorageNumber);
+    }
+
+    function sfGet(uint256 _simpleStorageIndex) public view returns(uint256){
+        // SimpleStorage mySimpleStorage = listofsimpleStorageContracts[_simpleStorageIndex];
+        // return mySimpleStorage.retrieve();
+
+        return listofsimpleStorageContracts[_simpleStorageIndex].retrieve();
+    }
+}
+
+
+// ----------------------------------------Inheritance-in-Solidity------------------------------------------------
+
+// Inheritance is simple we just need to write "virtual" keyword in function 
+// which we want to override or inherite to a different file. and just write "override" keyword on the new funciton we made to its name.
+
+// function stock(uint256 _totalSupply) public virtual {
+//     mytotalSupply = _totalSupply;
+// }
+
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.18;
+   
+import {SimpleStorage} from "./SimpleStorage.sol";
+
+contract AddFiveStorage is SimpleStorage {
+    function stock(uint256 _newNumber) public override {
+        mytotalSupply = _newNumber + 5;
+    }
+
+}
