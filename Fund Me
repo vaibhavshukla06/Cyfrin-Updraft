@@ -29,19 +29,24 @@ contract FundMe{
         // Address : 0x694AA1769357215DE4FAC081bf1f309aDC325306
         // ABI
         AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
-        // Get latest price feed from our ETH/USD price feed address. 
+
+        // Get the latest price data from Chainlink's Aggregator
         (, int256 price, , ,) = priceFeed.latestRoundData();
-        // price of ETH in terms of USD
-        // 200000000000
+
+        // Chainlink usually returns price with 8 decimals, so we multiply by 1e10 to make it 18 decimals
         return uint256(price * 1e10); // We multiply price * 1e10 to scale the Chainlink ETH price (8 decimals) into the standard 18 decimal format (wei) used in Ethereum/Solidity calculations — so all values are consistent and we don’t lose precision.
     }
-
+    
     function getConversionRate(uint256 ethAmount) public view returns(uint256) {
+        // 1 ETH? 
+        // 2000_0000000000000000000
         uint256 ethPrice = getPrice();
-        // 1000000000000000000 * 10000000000000000000 = 1000000000000000000000000000000000 / 1e18
-        uint256 ethAmountIdUsd = (ethPrice * ethAmount) / 1e10; // !Important rule of math in Solidity is " You should always multiply before you divide. " Multiplying before dividing ensures that precision is preserved, as Solidity performs integer division where truncation occurs if division is done first. For example, (5 * 2) / 3 yields 3, whereas (5 / 3) * 2 yields 2.
-        return ethAmountIdUsd; 
+        // (2000_0000000000000000000 * 1_00000000000000000) / 1e18
+        // $2000 = 1 ETH
+        uint256 ethAmountInUSD = (ethPrice * ethAmount) / 1e10;
+        return ethAmountInUSD;
     }
+
 
     function getVersion()public view returns (uint256) {
         return AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306).version();
