@@ -3,31 +3,39 @@
 // Set a minimum funding value in USD
 
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.24;
+pragma solidity ^0.8.18; 
 
 import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.sol";
 
-contract FundMe{
-    uint256 public minimumUsd = 5e18; // 5eth or 5 * 1e18 
+contract FundMe {
 
-    address[] public founders;
-    mapping(address foudner => uint256 amountFunded) public addressToAmountFunded;
+    uint256 public minimumUSD = 5e18;
 
-    function fund() public payable { // The payable keyword is used to mark a function or address that can receive Ether (ETH).
+    // It keeps track of every person who has funded the contract.
+    address[] public funders;
+    // It keeps track of the amount of ETH each person has funded.
+    mapping(address funder => uint256 amountFunded) public amountFundedbyaddress;
+
+    function fund() public payable {
         // Allow users to send $
-        // Have a minimum $ sent
-        // 1. How do we send ETH to our contract
-        require(getConversionRate(msg.value) >= minimumUsd, "Didn't get the minimum ETH amount"); //  1e18 = 1 ETH = 1000000000000000000 = 1 * 10 ** 18
-        founders.push(msg.sender);
-        addressToAmountFunded[msg.sender] += msg.value; // addressToAmountFunded[msg.sender] = addressToAmountFunded[msg.sender] + msg.value
+        // Have a minimum $ sent $5
+        // 1. How do we send ETH to the contract?
+        require(getConversionRate(msg.value) >= minimumUSD, "Did't send enough ETH"); // 1e18 = 1 ETH = 1000000000000000000 Wei
+        // 2. How do we check if the amount sent is greater than $5? - we don't have to if the amount greater than $5 the user won't be able to make a transaction 
+        // 3. How do we convert ETH to USD? - check getConversionRate function <ans>
 
-        // What is a revert?
-        // Undo any actions that have been done, and send the remaining gas back
+        // 4. How do we store the information about who funded and how much they funded?
+        // Tthe address of the sender or funder 
+        funders.push(msg.sender);
+        // 5. How do we update the total amount funded?
+        // The total amount of ETH sent by the funder till now . "Bob already donated ₹300. He just gave ₹200 more. Now we show ₹500 next to his name."
+        amountFundedbyaddress[msg.sender] += msg.value;
     }
 
+    // function withdraw() public {}
+
     function getPrice() public view returns(uint256){
-        // Address : 0x694AA1769357215DE4FAC081bf1f309aDC325306
-        // ABI
+        // This is the ETH to USD price feed Address : 0x694AA1769357215DE4FAC081bf1f309aDC325306, 0x5fb1616F78dA7aFC9FF79e0371741a747D2a7F22        // ABI
         AggregatorV3Interface priceFeed = AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306);
 
         // Get the latest price data from Chainlink's Aggregator
@@ -35,8 +43,8 @@ contract FundMe{
 
         // Chainlink usually returns price with 8 decimals, so we multiply by 1e10 to make it 18 decimals
         return uint256(price * 1e10); // We multiply price * 1e10 to scale the Chainlink ETH price (8 decimals) into the standard 18 decimal format (wei) used in Ethereum/Solidity calculations — so all values are consistent and we don’t lose precision.
-    }
-    
+    } 
+
     function getConversionRate(uint256 ethAmount) public view returns(uint256) {
         // 1 ETH? 
         // 2000_0000000000000000000
@@ -47,6 +55,15 @@ contract FundMe{
         return ethAmountInUSD;
     }
 
+    // function getConversionRate(uint256 btcAmount) public view returns (uint256) {
+    //     // Get the BTC/ETH price from Chainlink oracle
+    //     uint256 btcPriceInEth = getPrice(); // Example: 15 ETH = 1 BTC → btcPriceInEth = 15e18
+
+    //     // Multiply BTC amount with price to get amount in ETH
+    //     uint256 btcAmountInEth = (btcPriceInEth * btcAmount) / 1e18;
+
+    //     return btcAmountInEth;
+    // }
 
     function getVersion()public view returns (uint256) {
         return AggregatorV3Interface(0x694AA1769357215DE4FAC081bf1f309aDC325306).version();
